@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fehler-App · Variante 1 — Marginalie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Familjen+Grotesk:ital,wght@0,400..700;1,400..700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   VARIANTE 1 — "MARGINALIE"
+   Idee: Die Korrekturseite eines Lektors. Papier, Tinte,
+   Rotstift. Kein Karten-Layout, sondern ein Satzspiegel mit
+   Marginalspalte. Signature: die rote Marginallinie + die
+   handnummerierte Kolumne (No. 047) am linken Rand.
+   ============================================================ */
+
+:root{
+  --paper:      #E9E7E2;
+  --paper-hi:   #F5F3EF;
+  --ink:        #16181B;
+  --slate:      #5C666E;
+  --red:        #B23A2E;
+  --rule:       #D2CEC6;
+
+  --f-display: "Gloock", Georgia, serif;
+  --f-text:    "Familjen Grotesk", system-ui, sans-serif;
+  --f-mono:    "Spline Sans Mono", ui-monospace, monospace;
+
+  --step--1: 0.78rem;
+  --step-0:  0.975rem;
+  --step-1:  1.1875rem;
+  --step-2:  1.5rem;
+  --step-3:  2.125rem;
+  --step-4:  3rem;
+
+  --gutter: 4.25rem;
+  --pad: 1.25rem;
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+html{ -webkit-text-size-adjust:100%; }
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--f-text);
+  font-size:var(--step-0);
+  line-height:1.55;
+  font-feature-settings:"ss01" 1;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+/* feine Papierstruktur, sehr zurückhaltend */
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:radial-gradient(circle at 1px 1px, rgba(22,24,27,.05) 1px, transparent 0);
+  background-size:4px 4px; opacity:.5;
+}
+button,input,textarea{ font:inherit; color:inherit; }
+:focus-visible{ outline:2px solid var(--red); outline-offset:3px; border-radius:1px; }
+
+.app{ position:relative; z-index:1; max-width:52rem; margin:0 auto; }
+
+/* ---------- Kopf ---------- */
+.masthead{
+  padding:calc(env(safe-area-inset-top) + 1.75rem) var(--pad) 0;
+  border-bottom:1px solid var(--ink);
+}
+.masthead .kicker{
+  font-family:var(--f-mono); font-size:var(--step--1);
+  letter-spacing:.14em; text-transform:uppercase; color:var(--slate);
+  display:flex; justify-content:space-between; align-items:baseline;
+}
+.masthead h1{
+  font-family:var(--f-display); font-weight:400;
+  font-size:clamp(2.4rem, 12vw, var(--step-4));
+  line-height:.95; margin:.5rem 0 .35rem; letter-spacing:-.01em;
+}
+.masthead .sub{
+  font-size:var(--step--1); color:var(--slate); margin:0 0 1rem;
+  max-width:32ch; font-style:italic;
+}
+.acct{ background:none; border:0; padding:.25rem 0; cursor:pointer; color:var(--slate);
+  font-family:var(--f-mono); font-size:var(--step--1); letter-spacing:.08em;
+  text-transform:uppercase; text-decoration:underline; text-underline-offset:3px;
+  text-decoration-color:var(--rule); min-height:44px; display:inline-flex; align-items:center; }
+.acct:hover{ color:var(--red); text-decoration-color:var(--red); }
+
+/* ---------- Suche: eine Linie, kein Kasten ---------- */
+.search{ border-bottom:1px solid var(--rule); padding:0 var(--pad); display:flex; align-items:center; gap:.75rem; }
+.search svg{ width:15px; height:15px; flex:none; color:var(--slate); }
+.search input{
+  flex:1; border:0; background:transparent; padding:.95rem 0; min-height:44px;
+  font-size:var(--step-0);
+}
+.search input::placeholder{ color:var(--slate); opacity:.75; }
+.search input:focus{ outline:none; }
+.search:focus-within{ border-bottom-color:var(--red); }
+
+/* ---------- Tag-Filter ---------- */
+.tags-bar{
+  display:flex; gap:0; overflow-x:auto; scrollbar-width:none;
+  border-bottom:1px solid var(--rule); padding:0 var(--pad);
+}
+.tags-bar::-webkit-scrollbar{ display:none; }
+.tags-bar button{
+  border:0; background:none; cursor:pointer; white-space:nowrap;
+  font-family:var(--f-mono); font-size:var(--step--1); letter-spacing:.06em;
+  color:var(--slate); padding:.8rem .85rem; min-height:44px;
+  border-bottom:2px solid transparent; margin-bottom:-1px;
+}
+.tags-bar button:first-child{ padding-left:0; }
+.tags-bar button[aria-pressed="true"]{ color:var(--ink); border-bottom-color:var(--red); }
+
+/* ---------- Einträge ---------- */
+.entries{ list-style:none; margin:0; padding:0; }
+.entry{ border-bottom:1px solid var(--rule); }
+.entry > button{
+  all:unset; display:grid; grid-template-columns:var(--gutter) 1fr;
+  width:100%; box-sizing:border-box; cursor:pointer;
+  padding:1.4rem var(--pad) 1.4rem 0; align-items:start;
+}
+.entry > button:hover .fehler{ text-decoration:underline; text-decoration-color:var(--rule); text-underline-offset:4px; }
+
+/* Marginalspalte — das Signature-Element */
+.margin{
+  font-family:var(--f-mono); font-size:.68rem; letter-spacing:.06em;
+  color:var(--slate); text-align:right; padding-right:1rem; padding-top:.4rem;
+  line-height:1.35;
+}
+.margin .no{ display:block; color:var(--red); font-weight:600; }
+.body{ position:relative; padding-left:1rem; }
+.body::before{                      /* die rote Korrekturlinie */
+  content:""; position:absolute; left:0; top:.35rem; bottom:.35rem;
+  width:1.5px; background:var(--red); opacity:.85;
+}
+.fehler{
+  font-family:var(--f-display); font-weight:400;
+  font-size:var(--step-1); line-height:1.28; margin:0;
+  letter-spacing:-.005em; text-wrap:balance;
+}
+@media (min-width:40rem){ .fehler{ font-size:var(--step-2); } }
+.chips{ display:flex; flex-wrap:wrap; gap:.4rem .9rem; margin-top:.7rem; }
+.chip{ font-family:var(--f-mono); font-size:.7rem; letter-spacing:.05em; color:var(--slate); }
+.chip::before{ content:"·"; margin-right:.35rem; color:var(--red); }
+
+/* Detail */
+.detail{ display:none; padding:0 var(--pad) 1.6rem var(--gutter); }
+.entry.open .detail{ display:block; }
+.detail .field{ padding-left:1rem; margin-top:1.15rem; }
+.detail dt{
+  font-family:var(--f-mono); font-size:.68rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--red); margin-bottom:.3rem;
+}
+.detail dd{ margin:0; color:var(--ink); max-width:60ch; }
+.detail dd.quiet{ color:var(--slate); }
+.actions{ display:flex; gap:1.5rem; margin:1.5rem 0 0 1rem; }
+.actions button{
+  background:none; border:0; cursor:pointer; padding:.5rem 0; min-height:44px;
+  font-family:var(--f-mono); font-size:var(--step--1); letter-spacing:.08em;
+  text-transform:uppercase; text-decoration:underline; text-underline-offset:4px;
+  text-decoration-color:var(--rule);
+}
+.actions .del{ color:var(--red); }
+.entry.open .body::before{ background:var(--ink); }
+
+/* ---------- Neuer Eintrag ---------- */
+.newbar{
+  position:sticky; bottom:0; z-index:5;
+  padding:1rem var(--pad) calc(1rem + env(safe-area-inset-bottom));
+  background:linear-gradient(to top, var(--paper) 62%, rgba(233,231,226,0));
+}
+.newbar button{
+  width:100%; min-height:52px; cursor:pointer;
+  background:var(--ink); color:var(--paper-hi); border:0;
+  font-family:var(--f-mono); font-size:var(--step--1);
+  letter-spacing:.16em; text-transform:uppercase;
+}
+.newbar button:hover{ background:var(--red); }
+
+/* ---------- Formular ---------- */
+.form-view{ display:none; }
+body[data-view="form"] .list-view{ display:none; }
+body[data-view="form"] .form-view{ display:block; }
+
+.form-head{ padding:calc(env(safe-area-inset-top) + 1.5rem) var(--pad) 1.25rem; border-bottom:1px solid var(--ink); }
+.form-head .kicker{ font-family:var(--f-mono); font-size:var(--step--1); letter-spacing:.14em;
+  text-transform:uppercase; color:var(--slate); }
+.form-head h2{ font-family:var(--f-display); font-weight:400; font-size:var(--step-3);
+  line-height:1; margin:.5rem 0 0; }
+form{ padding:0 var(--pad) 3rem; }
+.f{ border-bottom:1px solid var(--rule); padding:1.5rem 0 1.1rem; display:grid; grid-template-columns:var(--gutter) 1fr; }
+.f .num{ font-family:var(--f-mono); font-size:.68rem; color:var(--red); padding-top:.3rem; text-align:right; padding-right:1rem; }
+.f .col{ padding-left:1rem; border-left:1.5px solid var(--rule); }
+.f:focus-within .col{ border-left-color:var(--red); }
+.f label{ display:block; font-family:var(--f-display); font-size:var(--step-1); line-height:1.3; margin-bottom:.5rem; }
+.f .hint{ font-size:var(--step--1); color:var(--slate); font-style:italic; margin-bottom:.6rem; }
+.f textarea, .f input[type=text]{
+  width:100%; border:0; border-bottom:1px solid var(--rule); background:transparent;
+  padding:.5rem 0; resize:vertical; min-height:44px; line-height:1.5;
+}
+.f textarea:focus, .f input:focus{ outline:none; border-bottom-color:var(--ink); }
+.suggest{ display:flex; flex-wrap:wrap; gap:.45rem; margin-top:.8rem; }
+.suggest button{
+  cursor:pointer; background:transparent; border:1px solid var(--rule); border-radius:999px;
+  padding:.4rem .75rem; min-height:36px; font-family:var(--f-mono); font-size:.7rem; color:var(--slate);
+}
+.suggest button:hover{ border-color:var(--ink); color:var(--ink); }
+.suggest button.on{ background:var(--ink); border-color:var(--ink); color:var(--paper-hi); }
+.form-actions{ display:flex; gap:.75rem; margin-top:2rem; align-items:center; }
+.form-actions .save{
+  flex:1; min-height:52px; background:var(--ink); color:var(--paper-hi); border:0; cursor:pointer;
+  font-family:var(--f-mono); font-size:var(--step--1); letter-spacing:.16em; text-transform:uppercase;
+}
+.form-actions .save:hover{ background:var(--red); }
+.form-actions .cancel{
+  background:none; border:0; cursor:pointer; color:var(--slate); min-height:52px; padding:0 .5rem;
+  font-family:var(--f-mono); font-size:var(--step--1); letter-spacing:.1em; text-transform:uppercase;
+}
+
+/* ---------- Vorschau-Umschalter (gehört nicht zur App) ---------- */
+.pv{ position:fixed; right:.75rem; bottom:calc(.75rem + env(safe-area-inset-bottom)); z-index:50;
+  display:flex; background:var(--ink); border-radius:999px; padding:3px; }
+.pv button{ border:0; background:none; color:#9AA1A6; cursor:pointer; padding:.5rem .85rem;
+  border-radius:999px; font-family:var(--f-mono); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; }
+.pv button[aria-pressed="true"]{ background:var(--paper-hi); color:var(--ink); }
+
+@media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body data-view="list">
+
+<div class="app">
+
+  <!-- ============== LISTE ============== -->
+  <div class="list-view">
+    <header class="masthead">
+      <div class="kicker"><span>Persönliches Register</span><span>2026</span></div>
+      <h1>Fehler&shy;liste</h1>
+      <p class="sub">Was passiert ist, was ich daraus lerne, und wie ich es beim nächsten Mal anders mache.</p>
+      <button class="acct">Luca · Abmelden</button>
+    </header>
+
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" placeholder="In 47 Einträgen suchen …" aria-label="Suche">
+    </div>
+
+    <nav class="tags-bar" aria-label="Nach Tag filtern">
+      <button aria-pressed="true">Alle</button>
+      <button aria-pressed="false">kommunikation</button>
+      <button aria-pressed="false">technik</button>
+      <button aria-pressed="false">prozess</button>
+      <button aria-pressed="false">grenzen</button>
+      <button aria-pressed="false">team</button>
+      <button aria-pressed="false">risiko</button>
+    </nav>
+
+    <ul class="entries" id="entries"></ul>
+
+    <div class="newbar"><button type="button" onclick="setView('form')">＋ Neuer Eintrag</button></div>
+  </div>
+
+  <!-- ============== FORMULAR ============== -->
+  <div class="form-view">
+    <header class="form-head">
+      <div class="kicker">No. 048 · Entwurf</div>
+      <h2>Ein neuer Eintrag</h2>
+    </header>
+    <form onsubmit="return false">
+      <div class="f">
+        <div class="num">01</div>
+        <div class="col">
+          <label for="v1a">Was für einen Fehler habe ich gemacht?</label>
+          <p class="hint">So konkret wie möglich. Kein Urteil, nur der Vorgang.</p>
+          <textarea id="v1a" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="f">
+        <div class="num">02</div>
+        <div class="col">
+          <label for="v1b">Was lerne ich daraus?</label>
+          <p class="hint">Der Satz, der übrig bleibt, wenn der Ärger weg ist.</p>
+          <textarea id="v1b" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="f">
+        <div class="num">03</div>
+        <div class="col">
+          <label for="v1c">Wie vermeide ich ihn in Zukunft?</label>
+          <p class="hint">Eine Regel, die man befolgen kann, ohne nachzudenken.</p>
+          <textarea id="v1c" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="f">
+        <div class="num">04</div>
+        <div class="col">
+          <label for="v1d">Tags</label>
+          <p class="hint">Mit Komma trennen. Bereits benutzte Tags unten.</p>
+          <input id="v1d" type="text" placeholder="z. B. kommunikation, team">
+          <div class="suggest">
+            <button type="button" class="on">kommunikation</button>
+            <button type="button">team</button>
+            <button type="button">technik</button>
+            <button type="button">prozess</button>
+            <button type="button">grenzen</button>
+            <button type="button">risiko</button>
+            <button type="button">emotionen</button>
+            <button type="button">kunde</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="save">Eintragen</button>
+        <button type="button" class="cancel" onclick="setView('list')">Abbrechen</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="pv" role="group" aria-label="Vorschau umschalten">
+  <button id="pv-list" aria-pressed="true" onclick="setView('list')">Liste</button>
+  <button id="pv-form" aria-pressed="false" onclick="setView('form')">Formular</button>
+</div>
+
+<script>
+const DATA = [
+  {no:"047",datum:"09.08.2026",fehler:"Ich habe das Release am Freitag um 18:40 Uhr ausgerollt, kurz bevor ich ins Wochenende gefahren bin.",learning:"Ein Deployment ist erst fertig, wenn jemand es beobachtet hat. Freitagabend beobachtet niemand — auch ich nicht.",vermeidung:"Releases nur Dienstag bis Donnerstag vor 15 Uhr. Freitag ist Review-Tag, kein Deploy-Tag.",tags:["technik","prozess","risiko"]},
+  {no:"046",datum:"07.08.2026",fehler:"Ich habe Marie im Meeting widersprochen, ohne ihre Zahlen vorher gelesen zu haben.",learning:"Mein Widerspruch war schneller als mein Verständnis. Das kostet Vertrauen, nicht nur Zeit.",vermeidung:"Erst eine echte Frage stellen, bevor ich eine Gegenposition formuliere.",tags:["kommunikation","team"]},
+  {no:"045",datum:"05.08.2026",fehler:"Ich habe zugesagt, den Workshop zu übernehmen, obwohl die Woche schon voll war.",learning:"Ich sage Ja zur Anerkennung, nicht zur Aufgabe. Das merke ich immer erst am Mittwoch.",vermeidung:"24 Stunden Bedenkzeit bei allem, was länger als zwei Stunden dauert.",tags:["grenzen","selbstorganisation"]},
+  {no:"044",datum:"02.08.2026",fehler:"Ich habe die Datenbank migriert, ohne vorher ein Backup zu ziehen.",learning:"Ich habe auf mein Können vertraut statt auf ein Verfahren. Können hat keine Undo-Funktion.",vermeidung:"Checkliste vor jeder Migration: Backup ziehen, Restore einmal testen, dann erst starten.",tags:["technik","risiko"]},
+  {no:"043",datum:"31.07.2026",fehler:"Ich habe die Mail an den Kunden im Ärger geschrieben und sofort abgeschickt.",learning:"Der erste Entwurf gehört mir, der zweite dem Empfänger. Ich habe den ersten verschickt.",vermeidung:"Bei Ärger: Entwurf ohne Empfänger schreiben und eine Nacht liegen lassen.",tags:["kommunikation","emotionen"]},
+  {no:"042",datum:"28.07.2026",fehler:"Ich habe im Kundentermin meine Annahmen präsentiert, statt Fragen zu stellen.",learning:"Ich habe 40 Minuten geredet und nichts erfahren, was ich vorher nicht schon zu wissen glaubte.",vermeidung:"Die ersten 15 Minuten jedes Termins: nur Fragen, kein Slide.",tags:["kunde","kommunikation"]}
+];
+const esc = s => s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+document.getElementById('entries').innerHTML = DATA.map((e,i)=>`
+  <li class="entry${i===0?' open':''}">
+    <button type="button" onclick="this.parentElement.classList.toggle('open')" aria-expanded="${i===0}">
+      <div class="margin"><span class="no">No. ${e.no}</span>${e.datum}</div>
+      <div class="body">
+        <p class="fehler">${esc(e.fehler)}</p>
+        <div class="chips">${e.tags.map(t=>`<span class="chip">${t}</span>`).join('')}</div>
+      </div>
+    </button>
+    <dl class="detail">
+      <div class="field"><dt>Was ich daraus lerne</dt><dd>${esc(e.learning)}</dd></div>
+      <div class="field"><dt>Wie ich es vermeide</dt><dd class="quiet">${esc(e.vermeidung)}</dd></div>
+      <div class="actions"><button type="button">Bearbeiten</button><button type="button" class="del">Löschen</button></div>
+    </dl>
+  </li>`).join('');
+
+function setView(v){
+  document.body.dataset.view = v;
+  document.getElementById('pv-list').setAttribute('aria-pressed', v==='list');
+  document.getElementById('pv-form').setAttribute('aria-pressed', v==='form');
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.suggest button').forEach(b=>b.onclick=()=>b.classList.toggle('on'));
+document.querySelectorAll('.tags-bar button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tags-bar button').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');
+});
+</script>
+</body>
+</html>
