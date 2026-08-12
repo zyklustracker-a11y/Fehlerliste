@@ -1,0 +1,63 @@
+rules_version = '2';
+
+// ============================================================================
+// Fehlerliste — Security Rules
+//
+// Grundregel: Jeder Nutzer sieht und ändert ausschließlich Dokumente, deren
+// userId seiner eigenen Auth-UID entspricht. Ohne Anmeldung ist nichts lesbar.
+//
+// Einspielen: Firebase Console → Firestore Database → Regeln → Inhalt dieser
+// Datei einfügen → Veröffentlichen.
+// ============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /fehlerEintraege/{eintragId} {
+
+      // --- Hilfsfunktionen ---------------------------------------------
+
+      function angemeldet() {
+        return request.auth != null;
+      }
+
+      // Gehört das bereits gespeicherte Dokument dem Anfragenden?
+      function gehoertMir() {
+        return angemeldet() && resource.data.userId == request.auth.uid;
+      }
+
+      // Gehört das eingehende Dokument dem Anfragenden? Verhindert, dass
+      // jemand einen Eintrag unter fremder userId anlegt oder die userId
+      // eines eigenen Eintrags nachträglich umschreibt.
+      function bleibtMeins() {
+        return angemeldet() && request.resource.data.userId == request.auth.uid;
+      }
+
+      // Feldprüfung: Struktur und Typen müssen zum Datenmodell passen.
+      function inhaltIstGueltig() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['userId','fehler','learning','vermeidung','tags','erstelltAm','geaendertAm'])
+            && d.keys().hasAll(['userId','fehler','learning','vermeidung','tags','geaendertAm'])
+            && d.userId     is string
+            && d.fehler     is string && d.fehler.size() > 0 && d.fehler.size() <= 5000
+            && d.learning   is string && d.learning.size()   <= 5000
+            && d.vermeidung is string && d.vermeidung.size() <= 5000
+            && d.tags       is list   && d.tags.size()       <= 12;
+      }
+
+      // --- Berechtigungen ------------------------------------------------
+
+      allow read:   if gehoertMir();
+      allow create: if bleibtMeins() && inhaltIstGueltig()
+                    && request.resource.data.erstelltAm == request.time;
+      allow update: if gehoertMir() && bleibtMeins() && inhaltIstGueltig()
+                    && request.resource.data.erstelltAm == resource.data.erstelltAm;
+      allow delete: if gehoertMir();
+    }
+
+    // Alles andere bleibt zu.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

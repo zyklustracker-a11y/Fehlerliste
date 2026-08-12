@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fehlerliste</title>
+<meta name="description" content="Persönliches Register eigener Fehler: was passiert ist, was ich daraus lerne und wie ich es künftig vermeide.">
+
+<!-- PWA -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#E9E7E2">
+<meta name="color-scheme" content="light">
+
+<!-- iOS: „Zum Home-Bildschirm“ -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Fehlerliste">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="icon" href="./icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="./icons/icon-192.png" sizes="192x192" type="image/png">
+
+<!-- Schriften -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Familjen+Grotesk:ital,wght@0,400..700;1,400..700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="./styles.css">
+</head>
+
+<body data-screen="boot">
+
+<!-- =============== 1 · Start =============== -->
+<section class="screen screen-boot" id="screen-boot" aria-label="Wird geladen">
+  <p class="boot-text">Fehlerliste</p>
+</section>
+
+<!-- =============== 2 · Firebase fehlt =============== -->
+<section class="screen screen-note" id="screen-config">
+  <div class="note-inner">
+    <div class="kicker">Einrichtung</div>
+    <h1>Fast fertig</h1>
+    <p>In <code>firebase-config.js</code> stehen noch die Platzhalter. Trage dort die Werte deiner
+       Firebase-Web-App ein — die Schritt-für-Schritt-Anleitung liegt als <code>SETUP.md</code> im Repo.</p>
+    <p class="quiet">Bis dahin lässt sich die App weder anmelden noch speichern.</p>
+  </div>
+</section>
+
+<!-- =============== 3 · Anmeldung =============== -->
+<section class="screen screen-login" id="screen-login">
+  <div class="login-inner">
+    <div class="login-block">
+      <div class="kicker"><span>Persönliches Register</span></div>
+      <h1>Fehler&shy;liste</h1>
+      <p class="lead">Was passiert ist, was ich daraus lerne, und wie ich es beim nächsten Mal
+         anders mache.</p>
+    </div>
+
+    <div class="login-aktion">
+      <button type="button" id="btn-login" class="btn-primary">
+        <svg viewBox="0 0 18 18" aria-hidden="true" class="g-mark">
+          <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"/>
+          <path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33z"/>
+          <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
+        </svg>
+        <span>Mit Google anmelden</span>
+      </button>
+    </div>
+
+    <p class="fineprint">Deine Einträge gehören zu deinem Google-Konto und sind für niemanden
+       sonst lesbar.</p>
+
+    <div id="login-hilfe" hidden>
+      <p class="warn" id="login-fehler"></p>
+      <button type="button" id="btn-login-popup" class="linkish">Stattdessen im Fenster anmelden</button>
+    </div>
+  </div>
+</section>
+
+<!-- =============== 4 · Liste =============== -->
+<main class="screen app" id="screen-app">
+  <header class="masthead">
+    <div class="kicker">
+      <span>Persönliches Register</span>
+      <span id="kopf-zahl"></span>
+    </div>
+    <h1>Fehler&shy;liste</h1>
+    <p class="sub">Was passiert ist, was ich daraus lerne, und wie ich es beim nächsten Mal
+       anders mache.</p>
+    <button type="button" class="acct" id="btn-logout"><span id="acct-name">Konto</span><span aria-hidden="true">·</span><span>Abmelden</span></button>
+  </header>
+
+  <div class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input type="search" id="suche" placeholder="Volltext durchsuchen …" aria-label="Einträge durchsuchen"
+           autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search">
+    <button type="button" id="btn-suche-leeren" class="clear" hidden aria-label="Suche zurücksetzen">✕</button>
+  </div>
+
+  <nav class="tags-bar" id="tag-filter" aria-label="Nach Tag filtern"></nav>
+
+  <ul class="entries" id="entries"></ul>
+
+  <div class="leer" id="leer" hidden></div>
+
+  <div class="newbar">
+    <button type="button" id="btn-neu">＋ Neuer Eintrag</button>
+  </div>
+</main>
+
+<!-- =============== 5 · Formular =============== -->
+<section class="screen screen-form" id="screen-form">
+  <header class="form-head">
+    <div class="kicker" id="form-kicker">Entwurf</div>
+    <h2 id="form-title">Ein neuer Eintrag</h2>
+  </header>
+
+  <form id="form" novalidate>
+    <div class="f">
+      <div class="num">01</div>
+      <div class="col">
+        <label for="f-fehler">Was für einen Fehler habe ich gemacht?</label>
+        <p class="hint">So konkret wie möglich. Kein Urteil, nur der Vorgang.</p>
+        <textarea id="f-fehler" name="fehler" rows="3" required></textarea>
+        <p class="feldfehler" id="fehler-fehler" hidden>Ohne diesen Satz gibt es nichts zu lernen.</p>
+      </div>
+    </div>
+
+    <div class="f">
+      <div class="num">02</div>
+      <div class="col">
+        <label for="f-learning">Was lerne ich daraus?</label>
+        <p class="hint">Der Satz, der übrig bleibt, wenn der Ärger weg ist.</p>
+        <textarea id="f-learning" name="learning" rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="f">
+      <div class="num">03</div>
+      <div class="col">
+        <label for="f-vermeidung">Wie vermeide ich ihn in Zukunft?</label>
+        <p class="hint">Eine Regel, die man befolgen kann, ohne nachzudenken.</p>
+        <textarea id="f-vermeidung" name="vermeidung" rows="3"></textarea>
+      </div>
+    </div>
+
+    <div class="f">
+      <div class="num">04</div>
+      <div class="col">
+        <label for="f-tags">Tags</label>
+        <p class="hint">Mit Komma trennen. Bereits benutzte Tags stehen darunter.</p>
+        <input type="text" id="f-tags" name="tags" autocomplete="off" autocapitalize="none"
+               spellcheck="false" placeholder="z. B. kommunikation, team">
+        <div class="suggest" id="tag-vorschlaege"></div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="save" id="btn-speichern">Eintragen</button>
+      <button type="button" class="cancel" id="btn-abbrechen">Abbrechen</button>
+    </div>
+  </form>
+</section>
+
+<!-- =============== Löschen bestätigen =============== -->
+<dialog id="dlg-loeschen" class="dlg" aria-labelledby="dlg-titel">
+  <div class="dlg-body">
+    <div class="kicker">Bestätigung</div>
+    <h3 id="dlg-titel">Diesen Eintrag löschen?</h3>
+    <p class="dlg-zitat" id="dlg-zitat"></p>
+    <p class="quiet">Das lässt sich nicht rückgängig machen.</p>
+    <div class="dlg-actions">
+      <button type="button" class="cancel" id="dlg-abbrechen">Abbrechen</button>
+      <button type="button" class="del" id="dlg-bestaetigen">Endgültig löschen</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- =============== Statusmeldungen =============== -->
+<div class="status" id="status" role="status" aria-live="polite"></div>
+
+<script type="module" src="./app.js"></script>
+
+<!-- Bleibt der Startbildschirm hängen, ist app.js oder das Firebase-SDK nicht
+     angekommen. Dann sagen wir das, statt ewig zu blinken. -->
+<script>
+  setTimeout(function () {
+    if (document.body.dataset.screen !== 'boot') return;
+    var p = document.querySelector('.boot-text');
+    p.classList.add('boot-fehler');
+    p.textContent = navigator.onLine
+      ? 'Die App konnte nicht geladen werden. Lade die Seite neu.'
+      : 'Kein Netz — beim ersten Start braucht die App einmal eine Verbindung.';
+  }, 12000);
+</script>
+</body>
+</html>

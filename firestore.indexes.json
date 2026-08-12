@@ -1,0 +1,26 @@
+{
+  "_hinweis": [
+    "Nur ein zusammengesetzter Index wird gebraucht: für den Tag-Filter",
+    "(userId == … UND tags array-contains …).",
+    "",
+    "Die Liste selbst kommt ohne Index aus — sie fragt nur userId ab und",
+    "sortiert im Browser. Ohne diesen Index filtert die App die Tags lokal",
+    "weiter, es fehlt also keine Funktion; die Abfrage läuft dann nur nicht",
+    "über Firestore. Anlegen lässt er sich am schnellsten über den Link, den",
+    "Firestore beim ersten Versuch in die Browser-Konsole schreibt, oder von",
+    "Hand: Firebase Console → Firestore Database → Indexes → Composite.",
+    "",
+    "Mit der Firebase CLI: firebase deploy --only firestore:indexes"
+  ],
+  "indexes": [
+    {
+      "collectionGroup": "fehlerEintraege",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "tags",   "arrayConfig": "CONTAINS" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
