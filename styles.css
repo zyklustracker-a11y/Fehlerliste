@@ -427,7 +427,7 @@ mark{
    -------------------------------------------------------------------------- */
 .status{
   position:fixed; left:50%; transform:translateX(-50%);
-  bottom:calc(1rem + var(--sab)); z-index:40;
+  bottom:calc(5.25rem + var(--sab)); z-index:40;   /* über der Aktionsleiste */
   background:var(--ink); color:var(--paper-hi);
   font-family:var(--f-mono); font-size:var(--step--1); letter-spacing:.06em;
   padding:.85rem 1.15rem; max-width:calc(100vw - 2rem);

@@ -135,8 +135,9 @@ Die App zeigt dann genau diesen Hinweis auf dem Anmeldebildschirm an.
 
 1. Im Repository → **Settings** → linke Leiste **Pages**.
 2. Unter **Build and deployment → Source**: **Deploy from a branch**.
-3. **Branch**: `claude/fehler-app-pwa-0hxikk` (oder `main`, wenn du den Branch
-   vorher zusammenführst), **Ordner**: `/ (root)` → **Save**.
+3. **Branch**: `claude/fehler-app-pwa-0hxikk` — das ist derzeit der einzige
+   Branch im Repository. **Ordner**: `/ (root)` → **Save**.
+   Führst du den Branch später nach `main` zusammen, stell hier auf `main` um.
 4. Nach ein bis zwei Minuten ist die App unter
    `https://zyklustracker-a11y.github.io/Fehlerliste/` erreichbar.
 
