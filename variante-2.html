@@ -32,6 +32,7 @@
   --step--1:.78rem; --step-0:.95rem; --step-1:1.15rem;
   --step-2:1.45rem; --step-3:2rem;
   --pad:1.15rem;
+  --chrome:34px;
 }
 *,*::before,*::after{ box-sizing:border-box; }
 html{ -webkit-text-size-adjust:100%; }
@@ -40,10 +41,11 @@ body{
   font-family:var(--f-text); font-size:var(--step-0); line-height:1.55;
   -webkit-font-smoothing:antialiased;
   background-image:
-    linear-gradient(rgba(88,167,157,.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(88,167,157,.055) 1px, transparent 1px);
+    linear-gradient(rgba(88,167,157,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(88,167,157,.07) 1px, transparent 1px);
   background-size:22px 22px;
   padding-bottom:env(safe-area-inset-bottom);
+  padding-top:calc(var(--chrome) + env(safe-area-inset-top));
 }
 button,input,textarea{ font:inherit; color:inherit; }
 :focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
@@ -53,10 +55,10 @@ button,input,textarea{ font:inherit; color:inherit; }
 
 /* ---------- Statuszeile ---------- */
 .statusbar{
-  position:sticky; top:0; z-index:20; background:rgba(11,18,22,.94);
-  backdrop-filter:blur(6px);
+  position:sticky; top:calc(var(--chrome) + env(safe-area-inset-top)); z-index:20;
+  background:rgba(11,18,22,.94); backdrop-filter:blur(6px);
   border-bottom:1px solid var(--line);
-  padding:calc(env(safe-area-inset-top) + .55rem) var(--pad) .55rem;
+  padding:.55rem var(--pad);
   display:flex; justify-content:space-between; align-items:center; gap:1rem;
   font-family:var(--f-mono); font-size:.7rem; letter-spacing:.1em; color:var(--muted);
   text-transform:uppercase;
@@ -153,6 +155,7 @@ button,input,textarea{ font:inherit; color:inherit; }
   padding:.9rem var(--pad) calc(.9rem + env(safe-area-inset-bottom));
   background:linear-gradient(to top, var(--void) 60%, rgba(11,18,22,0));
 }
+.dock > div{ max-width:56rem; margin:0 auto; }
 .dock button{
   width:100%; min-height:52px; cursor:pointer; background:var(--amber); color:#12191C;
   border:0; font-family:var(--f-mono); font-weight:500; font-size:.78rem;
@@ -166,6 +169,7 @@ button,input,textarea{ font:inherit; color:inherit; }
 body[data-view="form"] .list-view, body[data-view="form"] .dock{ display:none; }
 body[data-view="form"] .form-view{ display:block; }
 .form-view form{ padding:1.5rem var(--pad) 4rem; }
+.tokens button:last-child{ margin-right:var(--pad); }
 .fhead{ padding:2rem var(--pad) 1.25rem; border-bottom:1px solid var(--line); }
 .fhead .mono{ color:var(--amber); }
 .fhead h2{ font-family:var(--f-display); font-weight:800; text-transform:uppercase;
@@ -189,11 +193,15 @@ body[data-view="form"] .form-view{ display:block; }
 .fbtns .cancel{ min-height:52px; padding:0 1.1rem; background:none; border:1px solid var(--line); color:var(--muted);
   cursor:pointer; font-family:var(--f-mono); font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; }
 
-/* ---------- Vorschau-Umschalter ---------- */
-.pv{ position:fixed; right:.75rem; top:calc(env(safe-area-inset-top) + 3.2rem); z-index:60;
-  display:flex; border:1px solid var(--line); background:rgba(15,26,32,.95); }
-.pv button{ border:0; background:none; color:var(--muted); cursor:pointer; padding:.45rem .7rem;
-  font-family:var(--f-mono); font-size:.65rem; letter-spacing:.08em; text-transform:uppercase; }
+/* ---------- Vorschau-Leiste (gehört nicht zur App) ---------- */
+.pv{ position:fixed; inset:0 0 auto; z-index:60; height:calc(var(--chrome) + env(safe-area-inset-top));
+  padding:env(safe-area-inset-top) .5rem 0 var(--pad); background:#05090B; color:var(--muted);
+  border-bottom:1px solid var(--line);
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  font-family:var(--f-mono); font-size:.65rem; letter-spacing:.1em; text-transform:uppercase; }
+.pv .name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pv .sw{ display:flex; gap:2px; flex:none; }
+.pv button{ border:0; background:none; color:var(--muted); cursor:pointer; padding:.35rem .6rem; font:inherit; }
 .pv button[aria-pressed="true"]{ background:var(--amber); color:#12191C; }
 
 @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
@@ -235,7 +243,7 @@ body[data-view="form"] .form-view{ display:block; }
     </nav>
 
     <ul class="records" id="records"></ul>
-    <div class="dock"><button type="button" onclick="setView('form')">Neuen Eintrag anlegen</button></div>
+    <div class="dock"><div><button type="button" onclick="setView('form')">Neuen Eintrag anlegen</button></div></div>
   </div>
 
   <!-- ============== FORMULAR ============== -->
@@ -282,9 +290,12 @@ body[data-view="form"] .form-view{ display:block; }
   </div>
 </div>
 
-<div class="pv" role="group" aria-label="Vorschau umschalten">
-  <button id="pv-list" aria-pressed="true" onclick="setView('list')">Liste</button>
-  <button id="pv-form" aria-pressed="false" onclick="setView('form')">Formular</button>
+<div class="pv">
+  <span class="name">Variante 2 · Nachtprotokoll</span>
+  <span class="sw" role="group" aria-label="Vorschau umschalten">
+    <button id="pv-list" aria-pressed="true" onclick="setView('list')">Liste</button>
+    <button id="pv-form" aria-pressed="false" onclick="setView('form')">Formular</button>
+  </span>
 </div>
 
 <script>
