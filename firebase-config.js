@@ -16,10 +16,10 @@
    ========================================================================== */
 
 export const firebaseConfig = {
-  apiKey:            "HIER_API_KEY_EINTRAGEN",
-  authDomain:        "HIER_PROJEKT_ID.firebaseapp.com",
-  projectId:         "HIER_PROJEKT_ID",
-  storageBucket:     "HIER_PROJEKT_ID.firebasestorage.app",
-  messagingSenderId: "HIER_SENDER_ID_EINTRAGEN",
-  appId:             "HIER_APP_ID_EINTRAGEN"
+  apiKey:            "AIzaSyBNbu94chQOdylqY1lvM_bdaNwWpxoTzIU",
+  authDomain:        "fehlerliste-b17bc.firebaseapp.com",
+  projectId:         "fehlerliste-b17bc",
+  storageBucket:     "fehlerliste-b17bc.firebasestorage.app",
+  messagingSenderId: "467601977162",
+  appId:             "1:467601977162:web:f666caee02ea7b7f12dbb3"
 };
