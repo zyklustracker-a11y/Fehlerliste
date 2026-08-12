@@ -22,7 +22,7 @@ import {
   onAuthStateChanged, signOut
 } from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js';
 import {
-  initializeFirestore, persistentLocalCache,
+  initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   collection, doc, addDoc, updateDoc, deleteDoc,
   query, where, onSnapshot, getDocs, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js';
@@ -44,9 +44,15 @@ let db   = null;
 if (konfiguriert) {
   const app = initializeApp(firebaseConfig);
   auth = getAuth(app);
-  // Der lokale Cache macht die installierte App offline lesbar und hält
-  // Schreibvorgänge zurück, bis wieder Netz da ist.
-  db = initializeFirestore(app, { localCache: persistentLocalCache() });
+  // Der lokale Cache (IndexedDB) macht die App offline lesbar UND schreibbar:
+  // Neue Einträge, Änderungen und Löschungen landen sofort im Gerätespeicher
+  // und werden von Firestore selbstständig übertragen, sobald wieder Netz da
+  // ist — auch dann, wenn die App zwischendurch geschlossen war.
+  // Der Multi-Tab-Manager verhindert, dass die Persistenz kippt, wenn die App
+  // am Rechner in mehreren Tabs offen ist.
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+  });
 }
 
 /* --------------------------------------------------------------------------
@@ -63,6 +69,7 @@ const el = {
   loginHilfe:   $('#login-hilfe'),
   loginFehler:  $('#login-fehler'),
   btnLogout:    $('#btn-logout'),
+  verbindung:   $('#verbindung'),
   suche:        $('#suche'),
   btnSucheLeer: $('#btn-suche-leeren'),
   tagFilter:    $('#tag-filter'),
@@ -99,6 +106,7 @@ let tagTrefferIds  = null;  // Ergebnis der array-contains-Abfrage, sonst null
 let bearbeiteId    = null;  // Eintrag, der gerade im Formular liegt
 let loeschKandidat = null;
 let abmelden       = null;  // beendet das onSnapshot-Abo
+let ausstehend     = 0;     // Einträge, die noch nicht beim Server sind
 
 /* --------------------------------------------------------------------------
    2 · Werkzeug
@@ -228,6 +236,7 @@ function benutzerGewechselt(user) {
     el.loginHilfe.hidden = true;
     el.acctName.textContent = user.displayName || user.email || 'Angemeldet';
     eintraegeAbonnieren(user.uid);
+    verbindungZeichnen();
     if (el.body.dataset.screen !== 'form') zeigeScreen('app');
     return;
   }
@@ -236,6 +245,8 @@ function benutzerGewechselt(user) {
   // die Daten des vorigen Kontos dürfen nirgends stehen bleiben.
   if (abmelden) { abmelden(); abmelden = null; }
   eintraege = []; alleTags = []; suchtext = ''; aktiverTag = ''; tagTrefferIds = null;
+  ausstehend = 0;
+  el.verbindung.hidden = true;
   el.suche.value = '';
   el.btnSucheLeer.hidden = true;
   el.acctName.textContent = 'Konto';
@@ -265,8 +276,14 @@ function eintraegeAbonnieren(uid) {
 
   const abfrage = query(collection(db, COLLECTION), where('userId', '==', uid));
 
-  abmelden = onSnapshot(abfrage, (schnappschuss) => {
-    eintraege = schnappschuss.docs.map((d) => ({ id: d.id, ...d.data() }));
+  // includeMetadataChanges: sonst merkt die Oberfläche nicht, wenn ein
+  // zurückgehaltener Eintrag endlich beim Server angekommen ist.
+  abmelden = onSnapshot(abfrage, { includeMetadataChanges: true }, (schnappschuss) => {
+    eintraege = schnappschuss.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+      _ausstehend: d.metadata.hasPendingWrites   // liegt noch im lokalen Speicher
+    }));
 
     // Neueste zuerst. Ein gerade geschriebener Eintrag hat noch keine
     // Server-Zeit — der gehört nach oben.
@@ -279,8 +296,11 @@ function eintraegeAbonnieren(uid) {
     alleTags = [...new Set(eintraege.flatMap((e) => e.tags || []))]
       .sort((a, b) => a.localeCompare(b, 'de'));
 
+    ausstehend = eintraege.filter((e) => e._ausstehend).length;
+
     tagFilterZeichnen();
     listeZeichnen();
+    verbindungZeichnen();
 
     // Bei aktivem Tag die Firestore-Abfrage nachziehen, damit ein neuer oder
     // geänderter Eintrag auch im Filter auftaucht.
@@ -390,7 +410,7 @@ function zeileHtml(e, begriffe, offen) {
   <li class="entry${offen ? ' offen' : ''}" data-id="${esc(e.id)}">
     <button type="button" class="kopf" data-aktion="aufklappen"
             aria-expanded="${offen}" aria-controls="detail-${esc(e.id)}">
-      <span class="margin"><span class="no">No.&nbsp;${String(e._nr).padStart(3, '0')}</span>${datumKurz(erstellt)}</span>
+      <span class="margin"><span class="no">No.&nbsp;${String(e._nr).padStart(3, '0')}</span><span class="dat">${datumKurz(erstellt)}</span>${e._ausstehend ? '<span class="wartet">wartet</span>' : ''}</span>
       <span class="leib">
         <span class="fehler">${hervorheben(e.fehler, begriffe)}</span>
         <span class="chips">${tags}</span>
@@ -429,6 +449,35 @@ function leerzustandZeichnen(anzahlSichtbar) {
       `<p>Für „${esc(suchtext)}“ findet sich nichts${aktiverTag ? ` unter „${esc(aktiverTag)}“` : ''}.</p>`;
   }
 }
+
+/**
+ * Zeigt an, was gerade mit der Verbindung los ist. Die Leiste erscheint nur,
+ * wenn es etwas zu sagen gibt — offline, oder es liegt noch etwas zur
+ * Übertragung bereit.
+ */
+function verbindungZeichnen() {
+  const offline = !navigator.onLine;
+
+  if (!offline && ausstehend === 0) {
+    el.verbindung.hidden = true;
+    el.verbindung.textContent = '';
+    return;
+  }
+
+  const wartet = ausstehend === 1 ? 'Ein Eintrag wartet' : `${ausstehend} Einträge warten`;
+
+  el.verbindung.hidden = false;
+  el.verbindung.classList.toggle('offline', offline);
+  el.verbindung.textContent = offline
+    ? (ausstehend
+        ? `Offline — ${wartet} auf dem Gerät. Wird übertragen, sobald du wieder Netz hast.`
+        : 'Offline — Änderungen werden auf dem Gerät gesichert.')
+    : `${wartet} auf Übertragung …`;
+}
+
+// Netzwechsel sofort anzeigen; Firestore überträgt von selbst weiter.
+window.addEventListener('online',  verbindungZeichnen);
+window.addEventListener('offline', verbindungZeichnen);
 
 function tagFilterZeichnen() {
   if (!alleTags.length) { el.tagFilter.innerHTML = ''; return; }

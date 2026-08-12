@@ -11,7 +11,7 @@
    Worker beim nächsten Start die alten Caches ab.
    ========================================================================== */
 
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE_STATISCH = `fehlerliste-${VERSION}-statisch`;
 const CACHE_EXTERN   = `fehlerliste-${VERSION}-extern`;
 const AKTUELL = [CACHE_STATISCH, CACHE_EXTERN];

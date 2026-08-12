@@ -36,6 +36,28 @@ Die Dateien werden so ausgeliefert, wie sie im Repository liegen.
 - **Hosting** GitHub Pages; alle Pfade relativ, damit die App in einem
   Unterverzeichnis läuft
 
+## Offline
+
+Die App ist vollständig offline benutzbar — lesen **und** schreiben.
+
+Firestore läuft mit persistentem lokalem Cache (IndexedDB). Ohne Netz stehen
+alle Einträge weiterhin zur Verfügung; neue Einträge, Änderungen und
+Löschungen landen sofort im Gerätespeicher und werden von Firestore
+selbstständig übertragen, sobald wieder eine Verbindung da ist. Das
+funktioniert auch dann, wenn die App zwischendurch geschlossen war — die
+Warteschlange liegt auf dem Gerät, nicht im Arbeitsspeicher.
+
+Sichtbar wird das an drei Stellen:
+
+- Eine Leiste unter dem Suchfeld erscheint, sobald man offline ist oder noch
+  etwas auf Übertragung wartet. Sonst ist sie nicht da.
+- Betroffene Einträge tragen in der Marginalspalte den Vermerk **wartet**.
+- Nach dem Speichern sagt die Meldung, dass die Übertragung nachgeholt wird.
+
+Damit die App offline überhaupt startet, legt der Service Worker neben den
+eigenen Dateien auch die Schriften und das Firebase-SDK ab. Beim allerersten
+Start braucht sie deshalb einmal eine Verbindung.
+
 ## Datenmodell
 
 Collection `fehlerEintraege`, ein Dokument pro Eintrag:

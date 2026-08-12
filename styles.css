@@ -192,10 +192,10 @@ body[data-screen="login"] #screen-login{ display:grid; align-content:center; }
 /* --------------------------------------------------------------------------
    Suche — eine Linie, kein Kasten
    -------------------------------------------------------------------------- */
+.sticky-kopf{ position:sticky; top:0; z-index:6; background:var(--paper); }
 .search{
   border-bottom:1px solid var(--rule); padding:0 var(--pad);
   display:flex; align-items:center; gap:.75rem;
-  position:sticky; top:0; z-index:6; background:var(--paper);
 }
 .search svg{ width:15px; height:15px; flex:none; color:var(--slate); }
 .search input{
@@ -212,6 +212,24 @@ body[data-screen="login"] #screen-login{ display:grid; align-content:center; }
   min-width:44px; min-height:44px; font-size:.9rem;
 }
 .clear:hover{ color:var(--red); }
+
+/* --------------------------------------------------------------------------
+   Verbindungszustand — erscheint nur, wenn es etwas zu sagen gibt
+   -------------------------------------------------------------------------- */
+.verbindung{
+  margin:0; padding:.65rem var(--pad) .65rem calc(var(--pad) + .85rem);
+  border-bottom:1px solid var(--rule);
+  background:var(--paper-hi);
+  font-family:var(--f-mono); font-size:.7rem; letter-spacing:.03em;
+  line-height:1.45; color:var(--slate);
+  position:relative;
+}
+.verbindung::before{                 /* dieselbe Marginallinie wie am Eintrag */
+  content:""; position:absolute; left:var(--pad); top:.65rem; bottom:.65rem;
+  width:1.5px; background:var(--slate);
+}
+.verbindung.offline{ color:var(--ink); }
+.verbindung.offline::before{ background:var(--red); }
 
 /* --------------------------------------------------------------------------
    Tag-Filter
@@ -253,6 +271,11 @@ body[data-screen="login"] #screen-login{ display:grid; align-content:center; }
   line-height:1.45; overflow:hidden;
 }
 .margin .no{ display:block; color:var(--red); font-weight:600; }
+.margin .dat{ display:block; }
+.margin .wartet{
+  display:block; margin-top:.25rem; color:var(--red);
+  font-size:.58rem; letter-spacing:.1em; text-transform:uppercase;
+}
 
 .leib{ position:relative; padding-left:1rem; }
 .leib::before{                        /* die rote Korrekturlinie */
@@ -430,7 +453,9 @@ mark{
   bottom:calc(5.25rem + var(--sab)); z-index:40;   /* über der Aktionsleiste */
   background:var(--ink); color:var(--paper-hi);
   font-family:var(--f-mono); font-size:var(--step--1); letter-spacing:.06em;
-  padding:.85rem 1.15rem; max-width:calc(100vw - 2rem);
+  padding:.85rem 1.15rem;
+  /* ohne max-content beschneidet left:50% die Breite auf die halbe Seite */
+  width:max-content; max-width:min(30rem, calc(100vw - 2rem));
   opacity:0; visibility:hidden; pointer-events:none;
 }
 .status.sichtbar{ opacity:1; visibility:visible; }
